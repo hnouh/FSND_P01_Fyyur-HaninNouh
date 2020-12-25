@@ -15,6 +15,7 @@ from forms import *
 from flask_migrate import Migrate
 from sqlalchemy.orm import aliased
 import datetime
+from sqlalchemy import and_
 
 
 #----------------------------------------------------------------------------#
@@ -72,8 +73,6 @@ class Venue(db.Model):
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 
-# db.create_all()
-
 # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
@@ -112,18 +111,10 @@ def venues():
     # TODO: replace with real venues data.
     #       num_shows should be aggregated based on number of upcoming shows per venue.
 
-    # data1=Venue.query.distinct(Venue.city).all()
-    # data2=Venue.query.distinct(Venue.state).all()
+    allData=Venue.query.all() 
+    cityData=Venue.query.distinct(Venue.city).all() 
 
-    # alias1ForVenue = aliased(Venue)
-    # alias2ForVenue = aliased(Venue)
-    # datanew = alias1ForVenue.query.with_entities(Venue.id,Venue.name,Venue.state,Venue.city).join(alias2ForVenue, alias1ForVenue.id == alias2ForVenue.id)
-    # data =alias1ForVenue.query.join(alias2ForVenue, alias1ForVenue.city == alias2ForVenue.city & alias1ForVenue.id != alias2ForVenue.id).distinct(Venue.state).all()
-    # data = alias1ForVenue.query.join(alias2ForVenue, alias1ForVenue.city == alias2ForVenue.city & alias1ForVenue.id != alias2ForVenue.id)    
-    
-    data=Venue.query.group_by(Venue.id).all()
-
-    return render_template('pages/venues.html',len = len(list(data)), areas=data)
+    return render_template('pages/venues.html', city=cityData,name=allData)
 
 
 @app.route('/venues/search', methods=['POST'])
@@ -131,18 +122,11 @@ def search_venues():
     # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
     # seach for Hop should return "The Musical Hop".
     # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
-    whichVenue=request.form.get('search_term')
-    smallwhichVenue=whichVenue.lower()
-    response=Venue.query.filter(Venue.name.like(smallwhichVenue)).all()
-    # response = {
-    #     "count": 1,
-    #     "data": [{
-    #         "id": 2,
-    #         "name": "The Dueling Pianos Bar",
-    #         "num_upcoming_shows": 0,
-    #     }]
-    # }
-    return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
+    whichVenue=request.form.get('search_term') 
+    search = "%{}%".format(whichVenue)
+    response = Venue.query.filter(Venue.name.ilike(search)).all()
+    responseCount = Venue.query.filter(Venue.name.ilike(search)).count()
+    return render_template('pages/search_venues.html', results=response,count=responseCount, search_term=request.form.get('search_term', ''))
 
 
 @app.route('/venues/<int:venue_id>')
@@ -150,11 +134,34 @@ def show_venue(venue_id):
     # shows the venue page with the given venue_id
     # TODO: replace with real venue data from the venues table, using venue_id
     data = Venue.query.filter_by(id=venue_id).one()
-    dataNumUp=Show.query.filter_by(venue_id=venue_id).join(Venue, Show.venue_id == Venue.id).count()
-    dataUp=Show.query.with_entities(Show.start_time,Artist.image_link,Artist.id,Artist.name,Venue.id,Venue.name,Venue.image_link).filter_by(venue_id=venue_id).join(Artist, Show.artist_id == Artist.id).join(Venue, Show.venue_id == Venue.id)
-    print(dataUp)
+    now = datetime.datetime.now()
+    dataShow=Show.query.with_entities(Show.start_time,Artist.image_link,Artist.id,Artist.name,Venue.id,Venue.name,Venue.image_link).filter_by(venue_id=venue_id).join(Venue, Show.venue_id == Venue.id).join(Artist, Show.artist_id == Artist.id)
+    dataShowCount=Show.query.with_entities(Show.start_time,Artist.image_link,Artist.id,Artist.name,Venue.id,Venue.name,Venue.image_link).filter_by(venue_id=venue_id).join(Venue, Show.venue_id == Venue.id).join(Artist, Show.artist_id == Artist.id).count()
+    
+    countUp = 0
+    countDown = 0
+    def testUp(n):
+        i = 0
+        while i < dataShowCount:
+            if dataShow[i][0] > now:
+                n += 1
+            if i == dataShowCount:
+                break 
+            i += 1
+        return n
 
-    return render_template('pages/show_venue.html',len = len(list(dataUp)), venue=data, dataShownNum=dataNumUp, dataShow=dataUp)
+    def testDown(n):
+        i = 0
+        while i < dataShowCount:
+            if dataShow[i][0] < now:
+                n += 1
+            if i == dataShowCount:
+                break 
+            i += 1
+        return n 
+    
+    return render_template('pages/show_venue.html', venue=data, time=now,data=dataShow,countShow=dataShowCount,u=testUp(countUp),d=testDown(countDown))
+
 
 #  Create Venue
 #  ----------------------------------------------------------------
@@ -186,7 +193,6 @@ def create_venue_submission():
         flash('An error occurred. Venue ' +
               request.form['name'] + ' could not be listed.')
         return render_template('forms/new_venue.html', form=form)
-        # return render_template('pages/home.html')
 
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
@@ -218,15 +224,12 @@ def search_artists():
     # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
     # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
     # search for "band" should return "The Wild Sax Band".
-    whichArtist=request.form.get('search_term')
-    smallwhichArtist=whichArtist.lower()
-    response=Artist.query.filter(Artist.name.like(smallwhichArtist)).all()
-    
-    # query = Artist.query.all()
-    # query2 = search(query, whichArtist)
-    # response= query2.data.name
- 
-    return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
+    whichArtist=request.form.get('search_term') 
+    search = "%{}%".format(whichArtist)
+    response = Artist.query.filter(Artist.name.ilike(search)).all()
+    responseCount = Artist.query.filter(Artist.name.ilike(search)).count()
+
+    return render_template('pages/search_artists.html', results=response,count=responseCount, search_term=request.form.get('search_term', ''))
 
 
 @app.route('/artists/<int:artist_id>')
@@ -234,22 +237,33 @@ def show_artist(artist_id):
     # shows the artist page with the given artist_id
     # TODO: replace with real artist data from the artists table, using artist_id
     data = Artist.query.filter_by(id=artist_id).one()
-    # data2 = Artist.query.filter_by(id=artist_id).join(Show, Artist.id == Show.artist_id).join(Venue, Venue.id==Show.venue_id)
-    
     now = datetime.datetime.now()
+    dataShow=Show.query.with_entities(Show.start_time,Artist.image_link,Artist.id,Artist.name,Venue.id,Venue.name,Venue.image_link).filter_by(artist_id=artist_id).join(Artist, Show.artist_id == Artist.id).join(Venue, Show.venue_id == Venue.id)
+    dataShowCount=Show.query.with_entities(Show.start_time,Artist.image_link,Artist.id,Artist.name,Venue.id,Venue.name,Venue.image_link).filter_by(artist_id=artist_id).join(Artist, Show.artist_id == Artist.id).join(Venue, Show.venue_id == Venue.id).count()
     
-    dataNumUp=Show.query.filter_by(artist_id=artist_id).join(Artist, Show.artist_id == Artist.id).count()
-    dataUp=Show.query.with_entities(Show.start_time,Artist.image_link,Artist.id,Artist.name,Venue.id,Venue.name,Venue.image_link).filter_by(artist_id=artist_id).join(Artist, Show.artist_id == Artist.id).join(Venue, Show.venue_id == Venue.id)
-    print(dataUp)
+    countUp = 0
+    countDown = 0
+    def testUp(n):
+        i = 0
+        while i < dataShowCount:
+            if dataShow[i][0] > now:
+                n += 1
+            if i == dataShowCount:
+                break 
+            i += 1
+        return n
+
+    def testDown(n):
+        i = 0
+        while i < dataShowCount:
+            if dataShow[i][0] < now:
+                n += 1
+            if i == dataShowCount:
+                break 
+            i += 1
+        return n 
     
-    # for x in len(list(dataUp)):
-    #     print(dataUp[x][0])
-        # if now < dataUp[x][0]
-
-   
-
-    return render_template('pages/show_artist.html',len = len(list(dataUp)), artist=data, dataShownNum=dataNumUp, dataShow=dataUp)
-    # return render_template('pages/show_artist.html',len = len(list(dataUp)), artist=data ,artistData=data2, dataShownNum=dataNumUp, dataShow=dataUp)
+    return render_template('pages/show_artist.html', artist=data, time=now,data=dataShow,countShow=dataShowCount,u=testUp(countUp),d=testDown(countDown))
 
 #  Update
 #  ----------------------------------------------------------------
@@ -374,7 +388,6 @@ def create_artist_submission():
         flash('An error occurred. Artist ' +
               request.form['name'] + ' could not be listed.')
         return render_template('forms/new_artist.html', form=form)
-        # return render_template('pages/home.html')
 
 #  Shows
 #  ----------------------------------------------------------------
@@ -385,8 +398,6 @@ def shows():
     # displays list of shows at /shows
     # TODO: replace with real venues data.
     #       num_shows should be aggregated based on number of upcoming shows per venue.
-    # data1 = Artist.query.join(Show, Artist.id == Show.artist_id, isouter=True )
-    # data2 = Venue.query.join(Show, Venue.id == Show.venue_id , isouter=True)
     data = Artist.query.with_entities(Show.start_time,Artist.image_link,Artist.id,Artist.name,Venue.id,Venue.name).join(Show, Artist.id == Show.artist_id).outerjoin(Venue, Venue.id == Show.venue_id)
 
     return render_template('pages/shows.html',len = len(list(data)), shows=data)
@@ -418,7 +429,6 @@ def create_show_submission():
     else:
         flash('An error occurred. Show could not be listed.')
         return render_template('forms/new_show.html', form=form)
-        # return render_template('pages/home.html')
 
 
 @ app.errorhandler(404)
