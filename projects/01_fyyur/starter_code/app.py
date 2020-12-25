@@ -14,9 +14,7 @@ from flask_wtf import Form
 from forms import *
 from flask_migrate import Migrate
 from sqlalchemy.orm import aliased
-from sqlalchemy import func
 import datetime
-import sqlalchemy as sa  
 
 
 #----------------------------------------------------------------------------#
