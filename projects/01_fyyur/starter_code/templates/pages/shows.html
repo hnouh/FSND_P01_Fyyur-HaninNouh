@@ -1,15 +1,15 @@
 {% extends 'layouts/main.html' %}
 {% block title %}Fyyur | Shows{% endblock %}
 {% block content %}
-<div class="row shows">
-    {%for show in shows %}
+<div class="row shows"> 
+    {%for i in range(0, len)%} 
     <div class="col-sm-4">
         <div class="tile tile-show">
-            <img src="{{ show.artist_image_link }}" alt="Artist Image" />
-            <h4>{{ show.start_time|datetime('full') }}</h4>
-            <h5><a href="/artists/{{ show.artist_id }}">{{ show.artist_name }}</a></h5>
+            <img src="{{ shows[i][1] }}" alt="Artist Image" />
+            <h4>{{ shows[i][0]}}</h4>
+            <h5><a href="/artists/{{ shows[i][2] }}">{{ shows[i][3] }}</a></h5>
             <p>playing at</p>
-            <h5><a href="/venues/{{ show.venue_id }}">{{ show.venue_name }}</a></h5>
+            <h5><a href="/venues/{{ shows[i][4] }}">{{ shows[i][5] }}</a></h5>
         </div>
     </div>
     {% endfor %}
