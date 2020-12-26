@@ -181,7 +181,7 @@ def create_venue_submission():
     form = VenueForm()
     if request.method == 'POST':
         newVenue = Venue(name=form.name.data, city=form.city.data, state=form.state.data, address=form.address.data,
-                         phone=form.phone.data, image_link=form.image_link.data, genres=form.genres.data , facebook_link=form.facebook_link.data)
+                         phone=form.phone.data, image_link=form.image_link.data, genres=request.form.getlist('genres') , facebook_link=form.facebook_link.data)
         db.session.add(newVenue)
         db.session.commit()
         # on successful db insert, flash success
@@ -302,7 +302,7 @@ def edit_artist_submission(artist_id):
         artist.phone = newPhone
         newImage_link = request.form.get("image_link")
         artist.image_link = newImage_link
-        newGenres = request.form.get("genres")
+        newGenres = request.form.getlist("genres")
         artist.genres = newGenres
         newFacebook_link = request.form.get("facebook_link")
         artist.facebook_link = newFacebook_link
@@ -348,7 +348,7 @@ def edit_venue_submission(venue_id):
         venue.phone = newPhone
         newImage_link = request.form.get("image_link")
         venue.image_link = newImage_link
-        newGenres = request.form.get("genres")
+        newGenres = request.form.getlist("genres")
         venue.genres = newGenres
         newFacebook_link = request.form.get("facebook_link")
         venue.facebook_link = newFacebook_link
@@ -376,7 +376,7 @@ def create_artist_submission():
     form = ArtistForm()
     if request.method == 'POST':
         newArtist = Artist(name=form.name.data, city=form.city.data, state=form.state.data, phone=form.phone.data,
-                           image_link=form.image_link.data, genres=form.genres.data , facebook_link=form.facebook_link.data)
+                           image_link=form.image_link.data, genres=request.form.getlist('genres') , facebook_link=form.facebook_link.data)
         db.session.add(newArtist)
         db.session.commit()
         # on successful db insert, flash success
