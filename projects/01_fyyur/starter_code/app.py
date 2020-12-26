@@ -136,8 +136,8 @@ def show_venue(venue_id):
     # TODO: replace with real venue data from the venues table, using venue_id
     data = Venue.query.filter_by(id=venue_id).one() 
     now = datetime.datetime.now()
-    dataShow=Show.query.with_entities(Show.start_time,Artist.image_link,Artist.id,Artist.name,Venue.id,Venue.name,Venue.image_link).filter_by(venue_id=venue_id).join(Venue, Show.venue_id == Venue.id).join(Artist, Show.artist_id == Artist.id)
-    dataShowCount=Show.query.with_entities(Show.start_time,Artist.image_link,Artist.id,Artist.name,Venue.id,Venue.name,Venue.image_link).filter_by(venue_id=venue_id).join(Venue, Show.venue_id == Venue.id).join(Artist, Show.artist_id == Artist.id).count()
+    dataShow=Show.query.with_entities(Show.start_time,Artist.image_link,Artist.id,Artist.name,Venue.id,Venue.name,Venue.image_link).join(Venue, Show.venue_id == venue_id).join(Artist, Show.artist_id == Artist.id)
+    dataShowCount=Show.query.join(Venue, Show.venue_id == venue_id).join(Artist, Show.artist_id == Artist.id).count()
     
     countUp = 0
     countDown = 0
@@ -160,6 +160,7 @@ def show_venue(venue_id):
                 break 
             i += 1
         return n 
+    
     
     return render_template('pages/show_venue.html', venue=data, time=now,data=dataShow,countShow=dataShowCount,u=testUp(countUp),d=testDown(countDown))
 
@@ -238,9 +239,10 @@ def show_artist(artist_id):
     # TODO: replace with real artist data from the artists table, using artist_id
     data = Artist.query.filter_by(id=artist_id).one()
     now = datetime.datetime.now()
-    dataShow=Show.query.with_entities(Show.start_time,Artist.image_link,Artist.id,Artist.name,Venue.id,Venue.name,Venue.image_link).filter_by(artist_id=artist_id).join(Artist, Show.artist_id == Artist.id).join(Venue, Show.venue_id == Venue.id)
-    dataShowCount=Show.query.with_entities(Show.start_time,Artist.image_link,Artist.id,Artist.name,Venue.id,Venue.name,Venue.image_link).filter_by(artist_id=artist_id).join(Artist, Show.artist_id == Artist.id).join(Venue, Show.venue_id == Venue.id).count()
-    
+    dataShow=Show.query.with_entities(Show.start_time,Artist.image_link,Artist.id,Artist.name,Venue.id,Venue.name,Venue.image_link).join(Artist, Show.artist_id == artist_id)
+    # dataShowCount=Show.query.join(Artist, Show.artist_id == artist_id).join(Venue, Show.venue_id == Venue.id).count()
+    dataShowCount=Show.query.filter_by(artist_id=artist_id).join(Artist, Show.artist_id == Artist.id).join(Venue, Show.venue_id == Venue.id).count()
+
     countUp = 0
     countDown = 0
     def testUp(n):
