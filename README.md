@@ -4,6 +4,7 @@ This is the public repository for Udacity's Full-Stack Nanodegree program.
 
 ## Refrences
 * https://docs.sqlalchemy.org/en/14/orm/basic_relationships.html
+* https://docs.sqlalchemy.org/en/14/core/operators.html 
 * https://flask.palletsprojects.com/en/1.1.x/patterns/wtforms/
 * https://docs.sqlalchemy.org/en/13/core/type_basics.html
 * https://www.geeksforgeeks.org/python-using-for-loop-in-flask/
