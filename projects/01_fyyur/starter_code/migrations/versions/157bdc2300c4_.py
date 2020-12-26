@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: ca41a5439192
+Revision ID: 157bdc2300c4
 Revises: 
-Create Date: 2020-12-21 22:35:51.399165
+Create Date: 2020-12-26 19:49:49.570126
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'ca41a5439192'
+revision = '157bdc2300c4'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -24,7 +24,7 @@ def upgrade():
     sa.Column('city', sa.String(length=120), nullable=False),
     sa.Column('state', sa.String(length=120), nullable=True),
     sa.Column('phone', sa.String(length=120), nullable=True),
-    sa.Column('genres', sa.String(length=120), nullable=True),
+    sa.Column('genres', sa.ARRAY(sa.String()), nullable=True),
     sa.Column('image_link', sa.String(length=500), nullable=True),
     sa.Column('facebook_link', sa.String(length=120), nullable=True),
     sa.PrimaryKeyConstraint('id')
@@ -38,7 +38,7 @@ def upgrade():
     sa.Column('phone', sa.String(length=120), nullable=True),
     sa.Column('image_link', sa.String(length=500), nullable=True),
     sa.Column('facebook_link', sa.String(length=120), nullable=True),
-    sa.Column('genres', sa.String(length=120), nullable=True),
+    sa.Column('genres', sa.ARRAY(sa.String()), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('Show',
