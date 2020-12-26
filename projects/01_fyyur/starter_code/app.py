@@ -13,10 +13,9 @@ from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
 from flask_migrate import Migrate
-from sqlalchemy.orm import aliased
 import datetime
-from sqlalchemy import and_
-
+from sqlalchemy.sql import func
+import array, string  
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -26,9 +25,16 @@ app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
+db.init_app(app)
 migrate = Migrate(app, db)
+ 
 
 # TODO: connect to a local postgresql database
+
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import func
+
+db = SQLAlchemy()
 
 #----------------------------------------------------------------------------#
 # Models.
@@ -40,7 +46,7 @@ class Show(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), primary_key=True)
     venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), primary_key=True)
-    start_time = db.Column(db.DateTime)
+    start_time = db.Column(db.DateTime(timezone=True), default=func.now())
     venue = db.relationship("Venue",back_populates="artists")
     artist = db.relationship("Artist",back_populates="venues")
 
@@ -52,7 +58,7 @@ class Artist(db.Model):
     city = db.Column(db.String(120), nullable=False)
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
+    genres = db.Column(db.ARRAY(db.String))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120)) 
     venues = db.relationship('Show', back_populates="artist")
@@ -68,7 +74,7 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    genres = db.Column(db.String(120)) 
+    genres = db.Column(db.ARRAY(db.String))
     artists = db.relationship('Show', back_populates="venue")
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -133,7 +139,7 @@ def search_venues():
 def show_venue(venue_id):
     # shows the venue page with the given venue_id
     # TODO: replace with real venue data from the venues table, using venue_id
-    data = Venue.query.filter_by(id=venue_id).one()
+    data = Venue.query.filter_by(id=venue_id).one() 
     now = datetime.datetime.now()
     dataShow=Show.query.with_entities(Show.start_time,Artist.image_link,Artist.id,Artist.name,Venue.id,Venue.name,Venue.image_link).filter_by(venue_id=venue_id).join(Venue, Show.venue_id == Venue.id).join(Artist, Show.artist_id == Artist.id)
     dataShowCount=Show.query.with_entities(Show.start_time,Artist.image_link,Artist.id,Artist.name,Venue.id,Venue.name,Venue.image_link).filter_by(venue_id=venue_id).join(Venue, Show.venue_id == Venue.id).join(Artist, Show.artist_id == Artist.id).count()
@@ -180,7 +186,7 @@ def create_venue_submission():
     form = VenueForm()
     if request.method == 'POST':
         newVenue = Venue(name=form.name.data, city=form.city.data, state=form.state.data, address=form.address.data,
-                         phone=form.phone.data, image_link=form.image_link.data, genres=form.genres.data, facebook_link=form.facebook_link.data)
+                         phone=form.phone.data, image_link=form.image_link.data, genres=form.genres.data , facebook_link=form.facebook_link.data)
         db.session.add(newVenue)
         db.session.commit()
         # on successful db insert, flash success
@@ -207,7 +213,6 @@ def delete_venue(venue_id):
     # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
     # clicking that button delete it from the db then redirect the user to the homepage
     return None
-
 #  Artists
 #  ----------------------------------------------------------------
 
@@ -376,7 +381,7 @@ def create_artist_submission():
     form = ArtistForm()
     if request.method == 'POST':
         newArtist = Artist(name=form.name.data, city=form.city.data, state=form.state.data, phone=form.phone.data,
-                           image_link=form.image_link.data, genres=form.genres.data, facebook_link=form.facebook_link.data)
+                           image_link=form.image_link.data, genres=form.genres.data , facebook_link=form.facebook_link.data)
         db.session.add(newArtist)
         db.session.commit()
         # on successful db insert, flash success

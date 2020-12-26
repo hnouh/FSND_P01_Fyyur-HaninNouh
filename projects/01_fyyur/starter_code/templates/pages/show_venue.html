@@ -71,14 +71,14 @@
 			<div class="tile tile-show">
 				<img src="{{ data[i][1] }}" alt="Show Artist Image" />
 				<h5><a href="/artists/{{ data[i][2] }}">{{ data[i][3] }}</a></h5>
-				<h6>{{ data[i][0] }}</h6>
+				<h6>{{ data[i][0]}}</h6>
 			</div>
 		</div>
 		{% endif %}
 		{% endfor %}
 	</div>
 </section> 
-<!-- <h5><a href="/venues/{{ venue.id }}"  data-method="DELETE">Delete venue</a></h5> -->
+<h5><a href="/venues/{{ venue.id }}"  data-method="delete">Delete venue</a></h5>
  
 {% endblock %}
 
